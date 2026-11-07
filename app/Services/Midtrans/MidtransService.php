@@ -71,6 +71,9 @@ class MidtransService
         $orderId = $registrant->participant_token ?? 'PART-'.strtoupper(uniqid());
         $total = (int) round((float) $registrant->total);
 
+        $customerEmail = $this->customerEmail($registrant);
+        $customerPhone = trim((string) $registrant->phone);
+
         $items = [
             [
                 'id' => $registrant->ticket_tier_id,
@@ -95,11 +98,11 @@ class MidtransService
                 'gross_amount' => $total,
             ],
             'item_details' => $items,
-            'customer_details' => [
+            'customer_details' => array_filter([
                 'first_name' => $registrant->full_name,
-                'email' => $registrant->email,
-                'phone' => $registrant->phone,
-            ],
+                'email' => $customerEmail,
+                'phone' => $customerPhone !== '' ? $customerPhone : null,
+            ], fn ($v) => $v !== null && $v !== ''),
             'callbacks' => [
                 'finish' => url('/participant/'.$orderId.'/done'),
             ],
@@ -140,6 +143,39 @@ class MidtransService
             'token' => $body['token'],
             'redirect_url' => $body['redirect_url'] ?? null,
         ];
+    }
+
+    /**
+     * Email pelanggan menghadap Midtrans: harus valid & bukan domain reserved.
+     * Jika tidak memenuhi, fallback ke alamat aman agar transaksi tidak ditolak Midtrans.
+     */
+    public function customerEmail(Registrant $registrant): string
+    {
+        $email = mb_strtolower(trim((string) $registrant->email));
+
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) && ! $this->isReservedDomain($email)) {
+            return $email;
+        }
+
+        $hash = strtolower(substr(md5($registrant->id.'|'.$registrant->participant_token), 0, 12));
+
+        return 'customer-'.$hash.'@mail.com';
+    }
+
+    /**
+     * TLD reserved (RFC 2606/6761) yang Midtrans tolak sebagai "format email invalid".
+     */
+    private function isReservedDomain(string $email): bool
+    {
+        $dot = strrpos($email, '.');
+
+        if ($dot === false) {
+            return true;
+        }
+
+        $tld = mb_strtolower(substr($email, $dot + 1));
+
+        return in_array($tld, ['test', 'example', 'invalid', 'localhost', 'internal'], true);
     }
 
     /**

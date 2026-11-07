@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Event;
 use App\Models\EventTicketTier;
 use App\Models\Registrant;
+use App\Services\Midtrans\MidtransService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -93,6 +94,53 @@ class MidtransWebhookTest extends TestCase
 
         $response->assertOk();
         $this->assertTrue($this->registrant->fresh()->is_paid);
+    }
+
+    public function test_customer_email_returns_valid_email_as_is(): void
+    {
+        $registrant = $this->makeRegistrantWithEmail('budi@mail.com');
+
+        $email = app(MidtransService::class)->customerEmail($registrant);
+
+        $this->assertSame('budi@mail.com', $email);
+    }
+
+    public function test_customer_email_falls_back_for_reserved_tld(): void
+    {
+        $registrant = $this->makeRegistrantWithEmail('browser@demo.test');
+
+        $email = app(MidtransService::class)->customerEmail($registrant);
+
+        $this->assertStringStartsWith('customer-', $email);
+        $this->assertStringEndsWith('@mail.com', $email);
+        $this->assertNotSame('browser@demo.test', $email);
+    }
+
+    public function test_customer_email_falls_back_for_missing_domain_tld(): void
+    {
+        $registrant = $this->makeRegistrantWithEmail('test@test');
+
+        $email = app(MidtransService::class)->customerEmail($registrant);
+
+        $this->assertStringStartsWith('customer-', $email);
+        $this->assertStringEndsWith('@mail.com', $email);
+    }
+
+    private function makeRegistrantWithEmail(string $email): Registrant
+    {
+        $tier = EventTicketTier::factory()->create([
+            'event_id' => $this->event->id,
+            'price' => '150000.00',
+        ]);
+
+        return Registrant::factory()->create([
+            'event_id' => $this->event->id,
+            'ticket_tier_id' => $tier->id,
+            'email' => $email,
+            'participant_token' => 'PART-EMAIL-'.uniqid(),
+            'total' => '150000.00',
+            'fee' => '0.00',
+        ]);
     }
 
     /**
