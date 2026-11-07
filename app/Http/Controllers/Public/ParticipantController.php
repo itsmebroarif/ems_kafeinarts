@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Registrant;
+use App\Services\Midtrans\MidtransService;
 use App\Services\Payment\PaymentSimulationService;
 use App\Services\Ticket\TicketGenerationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,6 +18,7 @@ class ParticipantController extends Controller
     public function __construct(
         private readonly TicketGenerationService $ticket,
         private readonly PaymentSimulationService $payment,
+        private readonly MidtransService $midtrans,
     ) {}
 
     public function payment(Request $request, string $token): View
@@ -28,6 +31,8 @@ class ParticipantController extends Controller
             'registrant' => $registrant,
             'simulation' => $simulation,
             'token' => $token,
+            'snapJs' => config('midtrans.snap_js'),
+            'clientKey' => $this->midtrans->clientKeyValue(),
         ]);
     }
 
@@ -62,6 +67,64 @@ class ParticipantController extends Controller
 
         return view('public.participants.done', [
             'registrant' => $registrant,
+        ]);
+    }
+
+    /**
+     * Buat transaksi Snap Midtrans dan kembalikan token untuk Snap JS (dipanggil lewat fetch).
+     */
+    public function checkout(string $token): JsonResponse
+    {
+        $registrant = $this->findRegistrant($token);
+
+        if ($registrant->is_paid) {
+            return response()->json([
+                'error' => 'Pesanan ini sudah terbayar.',
+            ], 409);
+        }
+
+        if (! $this->midtrans->isConfigured()) {
+            return response()->json([
+                'error' => 'Midtrans belum dikonfigurasi. Hubungi admin untuk kunci sandbox.',
+            ], 503);
+        }
+
+        try {
+            $transaction = $this->midtrans->createSnapTransaction($registrant);
+        } catch (\RuntimeException $exception) {
+            return response()->json([
+                'error' => $exception->getMessage(),
+            ], 502);
+        }
+
+        return response()->json([
+            'order_id' => $transaction['order_id'],
+            'token' => $transaction['token'],
+            'redirect_url' => $transaction['redirect_url'],
+            'client_key' => $this->midtrans->clientKeyValue(),
+            'amount' => (int) round((float) $registrant->total),
+        ]);
+    }
+
+    /**
+     * Sinkronkan status transaksi langsung dari Midtrans (dipakai setelah Snap onSuccess).
+     */
+    public function syncMidtrans(string $token): JsonResponse
+    {
+        $registrant = $this->findRegistrant($token);
+
+        try {
+            $this->midtrans->syncStatus($registrant);
+        } catch (\RuntimeException $exception) {
+            return response()->json([
+                'synced' => false,
+                'message' => $exception->getMessage(),
+            ], 502);
+        }
+
+        return response()->json([
+            'synced' => true,
+            'is_paid' => (bool) $registrant->fresh()->is_paid,
         ]);
     }
 

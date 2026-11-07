@@ -12,7 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Webhook Midtrans dipanggil dari eksternal; jangan pakai CSRF untuk endpoint ini.
+        $middleware->validateCsrfTokens(except: ['midtrans/notification']);
+
         $middleware->alias([
             'locale' => \App\Http\Middleware\Locale::class,
         ]);

@@ -14,11 +14,15 @@ use App\Http\Controllers\Public\EventController as PublicEventController;
 use App\Http\Controllers\Public\ParticipantController;
 use App\Http\Controllers\Public\LocaleController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\MidtransController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('index');
 })->name('home');
+
+// Webhook Midtrans (di luar auth; signature diverifikasi di controller).
+Route::post('/midtrans/notification', [MidtransController::class, 'notification'])->name('midtrans.notification');
 
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('login', [AuthController::class, 'login']);
@@ -41,6 +45,8 @@ Route::prefix('participant')->group(function () {
     Route::get('/{token}/payment', [ParticipantController::class, 'payment'])->name('public.participants.payment');
     Route::post('/{token}/payment', [ParticipantController::class, 'paymentStore'])->name('public.participants.payment.store');
     Route::get('/{token}/done', [ParticipantController::class, 'done'])->name('public.participants.done');
+    Route::post('/{token}/checkout', [ParticipantController::class, 'checkout'])->name('public.participants.checkout');
+    Route::post('/{token}/midtrans/sync', [ParticipantController::class, 'syncMidtrans'])->name('public.participants.midtrans.sync');
     Route::get('/{token}/ticket', [ParticipantController::class, 'ticket'])->name('public.participants.ticket');
     Route::get('/{token}/ticket/print', [ParticipantController::class, 'ticketPrint'])->name('public.participants.ticket.print');
     Route::get('/{token}/ticket/download', [ParticipantController::class, 'ticketDownload'])->name('public.participants.ticket.download');

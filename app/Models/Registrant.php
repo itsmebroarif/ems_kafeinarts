@@ -50,6 +50,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $os_version
  * @property string|null $browser
  * @property string|null $browser_version
+ * @property string|null $midtrans_order_id
+ * @property string|null $midtrans_snap_token
+ * @property string|null $midtrans_snap_redirect_url
+ * @property string|null $midtrans_status
  * @property string|null $locale
  * @property bool $is_wallet_payment
  * @property string|null $employee_id
@@ -80,7 +84,8 @@ class Registrant extends Model
         'is_paid', 'is_confirmed', 'is_rejected', 'is_pending', 'is_deleted', 'is_referred', 'is_hide', 'is_approved',
         'shipping_method', 'paid_at', 'paid_by', 'exchange_id', 'ip_address', 'device_info', 'device_type',
         'os_version', 'browser', 'browser_version', 'locale', 'is_wallet_payment', 'employee_id', 'is_remove',
-        'to_payment_url', 'deleted_at',
+        'to_payment_url', 'deleted_at', 'midtrans_order_id', 'midtrans_snap_token', 'midtrans_snap_redirect_url',
+        'midtrans_status',
     ];
 
     protected $casts = [

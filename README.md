@@ -41,6 +41,7 @@ Aplikasi ini dirancang agar:
 - **Add-ons** — merchandise dengan pilihan switcher (maks. 1 unit per pembeli).
 - **Voucher Diskon** — kode voucher (persen/nominal) dengan batas penggunaan.
 - **Ringkasan Pembayaran** — simulasi checkout dengan perhitungan subtotal, add-ons, diskon, dan fee.
+- **Integrasi Midtrans (Sandbox)** — checkout nyata lewat Snap API: pembuatan transaksi otomatis, popup Snap (GoPay QRIS, Virtual Account, e-wallet, Kartu Kredit), verifikasi signature webhook (SHA512), status `settlement/capture/pending/cancel`, sinkronisasi status via API server-side, dan callback halaman selesai.
 - **Tiket Cetak (A4)** — halaman print siap cetak dengan QR Code.
 - **Surat Checkout Event** — dokumen resmi untuk diunduh sebagai HTML atau PDF (Dompdf).
 - **Dark Mode / Light Mode** — toggle tema yang tersimpan di `localStorage`.
@@ -138,6 +139,13 @@ php artisan key:generate
 # DB_USERNAME=root
 # DB_PASSWORD=
 
+# (Opsional) Konfigurasi Midtrans Sandbox
+# MIDTRANS_SERVER_KEY=SB-Mid-server-xxxx
+# MIDTRANS_CLIENT_KEY=SB-Mid-client-xxxx
+# MIDTRANS_API_URL=https://api.sandbox.midtrans.com/v2
+# MIDTRANS_SNAP_URL=https://app.sandbox.midtrans.com/snap/v1
+# MIDTRANS_SNAP_JS=https://app.sandbox.midtrans.com/snap/snap.js
+
 # Migrasi & seeder
 php artisan migrate --force
 php artisan db:seed --force
@@ -196,7 +204,8 @@ resources/views/
 1. Buka `/events`
 2. Gunakan filter kiri untuk jenis, lokasi, harga, atau tanggal
 3. Klik event → pilih tier → isi data diri → pilih add-ons (switcher) → konfirmasi
-4. Buka tiket atau cetak **Surat Checkout Event**
+4. Halaman pembayaran memakai **Midtrans Sandbox**: klik "Bayar Sekarang" → popup Snap Midtrans → pilih pembayaran → otomatis terverifikasi
+5. Buka tiket atau cetak **Surat Checkout Event**
 
 ---
 
