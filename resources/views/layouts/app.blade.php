@@ -51,6 +51,71 @@
             letter-spacing: -0.5px;
         }
 
+        /* ---------- Public navbar (Beranda) ---------- */
+        .public-navbar {
+            background: linear-gradient(180deg, #0f172a 0%, #121e35 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, .09);
+            backdrop-filter: blur(8px);
+        }
+
+        .public-nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            color: rgba(255, 255, 255, .78);
+            text-decoration: none;
+            padding: .45rem .85rem;
+            border-radius: 999px;
+            font-size: .9rem;
+            font-weight: 500;
+            transition: all .15s ease;
+        }
+
+        .public-nav-link:hover,
+        .public-nav-link:focus {
+            color: #fff;
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .public-nav-link.active {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, .14);
+            font-weight: 600;
+        }
+
+        .public-search {
+            min-width: 200px;
+            max-width: 260px;
+        }
+
+        .public-search .form-control {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .14);
+            color: #fff;
+            border-radius: 999px;
+            padding-left: .9rem;
+        }
+
+        .public-search .form-control::placeholder {
+            color: rgba(255, 255, 255, .45);
+        }
+
+        .public-search .form-control:focus {
+            background: rgba(255, 255, 255, .13);
+            border-color: rgba(251, 191, 36, .65);
+            color: #fff;
+            box-shadow: 0 0 0 .2rem rgba(251, 191, 36, .18);
+        }
+
+        .offcanvas .public-chip {
+            text-decoration: none;
+        }
+
+        .offcanvas .public-chip:hover {
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+
         .card {
             border-radius: 0.75rem;
             transition: transform 0.15s ease, box-shadow 0.15s ease, background-color .2s ease;
@@ -566,35 +631,86 @@
             </div>
         </div>
     @else
-        <nav class="navbar navbar-dark bg-dark sticky-top shadow-sm">
-            <div class="container d-flex align-items-center justify-content-between">
+        @php
+            $navCategories = \Illuminate\Support\Facades\Cache::remember(
+                'public.nav.categories.v2',
+                300,
+                fn () => \App\Models\EventCategory::where('is_active', true)->orderBy('name')->limit(8)->get(['name', 'slug'])->map(fn ($category) => ['name' => $category->name, 'slug' => $category->slug])->all()
+            );
+        @endphp
+
+        <nav class="navbar public-navbar navbar-dark sticky-top shadow-sm" aria-label="Navigasi utama">
+            <div class="container d-flex align-items-center justify-content-between gap-2">
                 <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="{{ route('home') }}">
                     <i class="bi bi-ticket-perforated-fill text-warning fs-4"></i>
-                    <span>Kafeinarts EMS</span>
+                    <span>Kafeinarts<span class="text-warning">EMS</span></span>
                 </a>
 
                 {{-- Desktop navigation --}}
-                <div class="d-none d-lg-flex align-items-center gap-3">
-                    <ul class="navbar-nav flex-row gap-3 mb-0 align-items-center">
+                <div class="d-none d-lg-flex align-items-center gap-2">
+                    <ul class="navbar-nav flex-row gap-1 mb-0 align-items-center">
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('home') ? 'active text-warning' : 'text-white' }}"
-                                href="{{ route('home') }}">
-                                <i class="bi bi-house-door me-1"></i>Beranda
+                            <a class="public-nav-link {{ request()->routeIs('home') ? 'active' : '' }}"
+                                href="{{ route('home') }}" @if (request()->routeIs('home')) aria-current="page" @endif>
+                                <i class="bi bi-house-door"></i>Beranda
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('public.events.*') ? 'active text-warning' : 'text-white' }}"
+                            <a class="public-nav-link {{ request()->routeIs('public.events.*') ? 'active' : '' }}"
                                 href="{{ route('public.events.index') }}">
-                                <i class="bi bi-calendar-event me-1"></i>Event
+                                <i class="bi bi-calendar-event"></i>Event
                             </a>
                         </li>
+                       {{--  @if (count($navCategories))
+                            <li class="nav-item dropdown">
+                                <a class="public-nav-link dropdown-toggle" href="#" role="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-grid"></i>Kategori
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-dark shadow border-0 mt-2">
+                                    <li>
+                                        <h6 class="dropdown-header"><i class="bi bi-tag me-1"></i>Jelajahi per kategori</h6>
+                                    </li>
+                                    @foreach ($navCategories as $category)
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('public.events.index', ['category' => $category['slug']]) }}">
+                                                <i class="bi bi-chevron-right small me-2 text-warning"></i>{{ $category['name'] }}
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </li>
+                        @endif --}}
                     </ul>
-                    {{-- <x-theme-toggle variant="btn-outline-light" /> --}}
-                    {{--
-                        <a class="btn btn-sm btn-outline-warning" href="{{ route('admin.dashboard') }}">
-                            <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
-                        </a> 
-                    --}}
+
+                    <form action="{{ route('public.events.index') }}" method="GET" class="public-search d-flex" role="search">
+                        <input type="search" name="search" class="form-control form-control-sm"
+                            placeholder="Cari event…" value="{{ request('search') }}" aria-label="Cari event">
+                        <button type="submit" class="btn btn-warning btn-sm ms-2 fw-semibold" aria-label="Cari">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </form>
+
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" aria-label="Ganti bahasa">
+                            <i class="bi bi-translate me-1"></i>{{ strtoupper(app()->getLocale() ?? 'id') }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ route('locale.switch', 'id') }}">Bahasa Indonesia (ID)</a></li>
+                            <li><a class="dropdown-item" href="{{ route('locale.switch', 'en') }}">English (EN)</a></li>
+                        </ul>
+                    </div>
+
+                    <x-theme-toggle variant="btn-outline-light" />
+
+                    <a href="{{ route('public.events.index') }}" class="btn btn-warning btn-sm fw-bold">
+                        <i class="bi bi-ticket-perforated me-1"></i>Beli Tiket
+                    </a>
+                    <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-light btn-sm"
+                        title="Masuk ke panel admin" aria-label="Admin Dashboard">
+                        <i class="bi bi-speedometer2"></i>
+                    </a>
                 </div>
 
                 {{-- Mobile offcanvas toggle --}}
@@ -617,10 +733,19 @@
                     aria-label="Tutup"></button>
             </div>
             <div class="offcanvas-body">
+                <form action="{{ route('public.events.index') }}" method="GET" class="d-flex mb-4" role="search">
+                    <input type="search" name="search" class="form-control" placeholder="Cari event…"
+                        value="{{ request('search') }}" aria-label="Cari event">
+                    <button type="submit" class="btn btn-warning ms-2" aria-label="Cari">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+
+                <div class="sidebar-section-title">Menu</div>
                 <ul class="navbar-nav gap-1 mb-4">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('home') ? 'text-warning fw-bold' : 'text-white' }}"
-                            href="{{ route('home') }}">
+                            href="{{ route('home') }}" @if (request()->routeIs('home')) aria-current="page" @endif>
                             <i class="bi bi-house-door me-2"></i>Beranda
                         </a>
                     </li>
@@ -632,13 +757,29 @@
                     </li>
                 </ul>
 
-                <div class="d-grid gap-2 mb-4">
+                @if (count($navCategories))
+                    <div class="sidebar-section-title">Kategori Event</div>
+                    <div class="d-flex flex-wrap gap-2 mb-4 px-2">
+                        @foreach ($navCategories as $category)
+                            <a href="{{ route('public.events.index', ['category' => $category['slug']]) }}"
+                                class="public-chip btn btn-sm btn-outline-light rounded-pill">
+                                {{ $category['name'] }}
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="sidebar-section-title">Aksi</div>
+                <div class="d-grid gap-2 mb-4 px-2">
+                    <a class="btn btn-warning" href="{{ route('public.events.index') }}">
+                        <i class="bi bi-ticket-perforated me-1"></i>Jelajahi &amp; Beli Tiket
+                    </a>
                     <a class="btn btn-outline-light" href="{{ route('admin.dashboard') }}">
                         <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
                     </a>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between gap-2 px-2">
+                <div class="d-flex align-items-center justify-content-between gap-2 px-2 border-top border-secondary pt-3">
                     <x-theme-toggle variant="btn-outline-light" />
                     <div class="dropdown">
                         <a class="btn btn-outline-light btn-sm dropdown-toggle" href="#" role="button"
