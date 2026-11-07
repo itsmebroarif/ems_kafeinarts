@@ -12,6 +12,13 @@ class EventTypeTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->actingAsAdmin();
+    }
+
     public function test_event_form_shows_competition_and_entertainment_options(): void
     {
         $response = $this->get(route('admin.events.create'));

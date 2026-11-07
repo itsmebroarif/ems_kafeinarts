@@ -7,12 +7,24 @@ use App\Models\EventAddon;
 use App\Models\EventAddonOption;
 use App\Models\EventTicketTier;
 use App\Models\EventVoucher;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Default admin user
+        User::updateOrCreate(
+            ['email' => 'admin@kafeinarts.com'],
+            [
+                'name' => 'Admin Kafeinarts',
+                'email' => 'admin@kafeinarts.com',
+                'password' => Hash::make('password'),
+            ]
+        );
+
         $event = Event::firstOrCreate(
             ['slug' => 'kafeinarts-festival-2026'],
             [

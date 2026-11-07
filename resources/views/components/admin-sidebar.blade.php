@@ -82,9 +82,21 @@
         <a href="{{ route('home') }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 mb-2">
             <i class="bi bi-box-arrow-up-right me-1"></i>Lihat Web
         </a>
-        <div class="small text-muted text-center">
-            <i class="bi bi-person-circle me-1"></i>{{ Auth::check() ? Auth::user()->name : 'Admin' }}
+        <div class="border rounded p-2 mb-2 text-center">
+            <div class="d-flex align-items-center justify-content-center gap-2">
+                <i class="bi bi-person-circle fs-4"></i>
+                <div class="small text-start">
+                    <div class="fw-semibold">{{ Auth::user()->name ?? 'Guest' }}</div>
+                    <div class="text-muted" style="font-size: .75rem;">{{ Auth::user()->email ?? '' }}</div>
+                </div>
+            </div>
         </div>
+        <form method="POST" action="{{ route('logout') }}" class="d-grid">
+            @csrf
+            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                <i class="bi bi-box-arrow-right me-1"></i>Logout
+            </button>
+        </form>
     </div>
 </aside>
 

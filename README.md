@@ -46,6 +46,7 @@ Aplikasi ini dirancang agar:
 - **Dark Mode / Light Mode** — toggle tema yang tersimpan di `localStorage`.
 
 ### 🛠 Admin & Manajemen Event
+- **Autentikasi Admin** — login, register, dan logout (Laravel-style) untuk akses panel admin.
 - **Sidebar Admin** — navigasi mudah antar dashboard, event, papan, tutorial, dan manajemen master data.
 - **Dashboard Admin** — statistik event, pendaftar, dan kategori.
 - **Papan Kanban** — 4 kolom: Event Terdaftar, Event Akan Dimulai, Event Ditutup, dan **Result** (khusus sport/esport).
@@ -176,11 +177,15 @@ resources/views/
 ## 📝 Cara Penggunaan
 
 ### Admin
-1. Login ke `/admin/dashboard`
+1. Login ke `/login` dengan kredensial default:
+   - **Email**: `admin@kafeinarts.com`
+   - **Password**: `password`
+   (atau buat akun baru lewat halaman `/register`)
 2. Buat event melalui **Wizard 4 Langkah** (atau tab di halaman edit)
 3. Kelola **Tier Tiket**, **Add-ons**, **Voucher** di setiap event
 4. Pantau peserta di **Papan Kanban** (Event Terdaftar → Akan Dimulai → Ditutup → Result)
 5. Export/Import data master jika perlu
+6. Klik **Logout** di sidebar bawah untuk keluar
 
 ### Publik
 1. Buka `/events`

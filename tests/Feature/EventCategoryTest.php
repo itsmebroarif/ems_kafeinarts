@@ -12,6 +12,13 @@ class EventCategoryTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->actingAsAdmin();
+    }
+
     public function test_admin_can_create_category_inline(): void
     {
         $response = $this->from(route('admin.events.create'))->post(route('admin.categories.store'), [

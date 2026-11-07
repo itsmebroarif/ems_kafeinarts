@@ -11,11 +11,18 @@ use App\Http\Controllers\Admin\MasterDataController as AdminMasterDataController
 use App\Http\Controllers\Public\EventController as PublicEventController;
 use App\Http\Controllers\Public\ParticipantController;
 use App\Http\Controllers\Public\LocaleController;
+use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('index');
 })->name('home');
+
+Route::get('login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('login', [AuthController::class, 'login']);
+Route::get('register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('register', [AuthController::class, 'register']);
+Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/events', [PublicEventController::class, 'index'])->name('public.events.index');
 Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
@@ -39,7 +46,7 @@ Route::prefix('participant')->group(function () {
     Route::get('/{token}/checkout-letter/download', [ParticipantController::class, 'checkoutLetterDownload'])->name('public.participants.checkout-letter.download');
 });
 
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard.index');
     Route::get('tutorial', function () {

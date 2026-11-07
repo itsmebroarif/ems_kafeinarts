@@ -83,6 +83,7 @@ class DummyEventsSeeder extends Seeder
     ];
 
     private array $provinces = ['DKI Jakarta', 'Jawa Barat', 'Jawa Timur', 'Jawa Tengah', 'Bali', 'Sumatera Utara', 'Lampung', 'Banten'];
+
     private array $cities = [
         'DKI Jakarta' => ['Jakarta Selatan', 'Jakarta Timur', 'Jakarta Barat', 'Jakarta Utara', 'Jakarta Pusat'],
         'Jawa Barat' => ['Bandung', 'Kota Bekasi', 'Kota Bogor', 'Kota Depok', 'Kota Cimahi'],
@@ -102,6 +103,7 @@ class DummyEventsSeeder extends Seeder
     ];
 
     private array $addonNames = ['Kaos Eksklusif', 'Lanyard', 'Photo Card', 'Tote Bag', 'Sticker Pack', 'Buku Digital', 'Merch Hoodie'];
+
     private array $sellerNotes = ['Diskon 10% untuk 100 pembeli pertama', 'Harga spesial untuk member', 'Free merchandise', 'Early bird discount'];
 
     /**
@@ -165,7 +167,7 @@ class DummyEventsSeeder extends Seeder
 
         $event = Event::create([
             'name' => $name,
-            'slug' => Str::slug($name . ' ' . now()->timestamp),
+            'slug' => Str::slug($name.' '.now()->timestamp),
             'category_id' => $category->id,
             'event_type' => $eventType,
             'description' => $this->generateDescription($name, $eventType),
@@ -226,9 +228,9 @@ class DummyEventsSeeder extends Seeder
 
             $tier = EventTicketTier::create([
                 'event_id' => $event->id,
-                'name' => $tierName . ' Pass',
-                'code' => strtoupper(substr($tierName, 0, 3)) . '-' . strtoupper(Str::random(6)),
-                'slug' => Str::slug($tierName . '-' . uniqid()),
+                'name' => $tierName.' Pass',
+                'code' => strtoupper(substr($tierName, 0, 3)).'-'.strtoupper(Str::random(6)),
+                'slug' => Str::slug($tierName.'-'.uniqid()),
                 'price' => $price,
                 'fee' => '5000.00',
                 'description' => "Tier {$tierName} untuk event {$event->name}",
@@ -256,8 +258,8 @@ class DummyEventsSeeder extends Seeder
             EventAddon::create([
                 'event_id' => $event->id,
                 'name' => $addonName,
-                'code' => strtoupper(substr($addonName, 0, 3)) . '-' . strtoupper(Str::random(6)),
-                'slug' => Str::slug($addonName . '-' . uniqid()),
+                'code' => strtoupper(substr($addonName, 0, 3)).'-'.strtoupper(Str::random(6)),
+                'slug' => Str::slug($addonName.'-'.uniqid()),
                 'image' => null,
                 'price' => (string) random_int(25, 150) * 1000,
                 'fee' => '0.00',
@@ -281,7 +283,7 @@ class DummyEventsSeeder extends Seeder
     private function createVouchers(Event $event): void
     {
         $voucherCodes = ['EARLY50', 'MEMBER30', 'NEWBIE20', 'HEMAT100', 'FESTIVE25'];
-        $code = $voucherCodes[array_rand($voucherCodes)] . '-' . random_int(100, 999);
+        $code = $voucherCodes[array_rand($voucherCodes)].'-'.random_int(100, 999);
 
         EventVoucher::create([
             'event_id' => $event->id,
@@ -309,7 +311,7 @@ class DummyEventsSeeder extends Seeder
             $isPaid = random_int(0, 3) < 2; // ~67% paid
             $status = $isPaid ? (random_int(0, 1) ? 'confirmed' : 'paid') : 'pending';
             $isConfirmed = $isPaid && random_int(0, 3) > 0;
-            $isPending = !$isPaid;
+            $isPending = ! $isPaid;
 
             $registrant = Registrant::factory()->create([
                 'event_id' => $event->id,
@@ -329,8 +331,8 @@ class DummyEventsSeeder extends Seeder
                 'discount' => '0.00',
                 'total' => (string) $tier->price,
                 'fee' => '5000.00',
-                'session_key' => 'dummy_' . uniqid(),
-                'participant_token' => 'PART-' . strtoupper(Str::random(13)),
+                'session_key' => 'dummy_'.uniqid(),
+                'participant_token' => 'PART-'.strtoupper(Str::random(13)),
                 'paid_at' => $isPaid ? now()->subDays(random_int(0, 30)) : null,
             ]);
 
@@ -339,8 +341,8 @@ class DummyEventsSeeder extends Seeder
                 TicketItem::factory()->create([
                     'registrant_id' => $registrant->id,
                     'ticket_tier_id' => $tier->id,
-                    'code' => 'TKT-' . strtoupper(Str::random(8)),
-                    'qr_code' => 'data:image/png;base64,' . base64_encode('dummy-qr-' . $registrant->id),
+                    'code' => 'TKT-'.strtoupper(Str::random(8)),
+                    'qr_code' => 'data:image/png;base64,'.base64_encode('dummy-qr-'.$registrant->id),
                     'barcode_type' => 'qrcode',
                     'is_used' => random_int(0, 10) > 8, // ~20% used
                 ]);
@@ -351,21 +353,22 @@ class DummyEventsSeeder extends Seeder
     private function generateDescription(string $name, string $eventType): string
     {
         $type = $eventType === EventType::KOMPETISI ? 'kompetisi' : 'event hiburan';
-        return "Selamat datang di {$name}! {$type} ini akan menghadirkan pengalaman terbaik untuk semua peserta. Bergabunglah dengan ratusan peserta dari seluruh Indonesia dan rasakan keseruan dalam acara ini.\n\n" .
-               "Highlights:\n" .
-               "- Persiapan terbaik untuk peserta\n" .
-               "- Networking dengan ahli di bidangnya\n" .
-               "- Hadiah menarik untuk pemenang\n" .
-               "- Sertifikat kehadiran untuk semua peserta\n\n" .
-               "Jangan lewatkan kesempatan ini! Dapatkan early bird discount sekarang.";
+
+        return "Selamat datang di {$name}! {$type} ini akan menghadirkan pengalaman terbaik untuk semua peserta. Bergabunglah dengan ratusan peserta dari seluruh Indonesia dan rasakan keseruan dalam acara ini.\n\n".
+               "Highlights:\n".
+               "- Persiapan terbaik untuk peserta\n".
+               "- Networking dengan ahli di bidangnya\n".
+               "- Hadiah menarik untuk pemenang\n".
+               "- Sertifikat kehadiran untuk semua peserta\n\n".
+               'Jangan lewatkan kesempatan ini! Dapatkan early bird discount sekarang.';
     }
 
     private function generateVenueDetails(string $provinsi, string $city): string
     {
-        return "Venue: {$city}, {$provinsi}\n" .
-               "Parkir: Tersedia parkir gratis di lantai B1-B3\n" .
-               "Transportasi: Silakan gunakan TransJakarta, KRL, atau angkutan umum terdekat\n" .
-               "Fasilitas: AC, Kantin, Toilet, Musholla, Wi-Fi\n" .
-               "Contact: 0812-XXXX-XXXX";
+        return "Venue: {$city}, {$provinsi}\n".
+               "Parkir: Tersedia parkir gratis di lantai B1-B3\n".
+               "Transportasi: Silakan gunakan TransJakarta, KRL, atau angkutan umum terdekat\n".
+               "Fasilitas: AC, Kantin, Toilet, Musholla, Wi-Fi\n".
+               'Contact: 0812-XXXX-XXXX';
     }
 }

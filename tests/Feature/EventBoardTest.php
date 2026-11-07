@@ -12,6 +12,13 @@ class EventBoardTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->actingAsAdmin();
+    }
+
     public function test_board_page_renders_all_columns(): void
     {
         Event::factory()->create(['name' => 'Konser Uji Coba']);

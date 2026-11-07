@@ -20,6 +20,8 @@ class MasterDataImportExportTest extends TestCase
     {
         parent::setUp();
 
+        $this->actingAsAdmin();
+
         $this->event = Event::factory()->create();
     }
 

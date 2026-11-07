@@ -10,6 +10,13 @@ class AdminEventTabsTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->actingAsAdmin();
+    }
+
     public function test_edit_page_uses_free_tab_navigation(): void
     {
         $event = Event::factory()->create();
