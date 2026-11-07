@@ -5,10 +5,10 @@
     // Mode "tabs" (edit): langkah bisa dibuka bebas; mode "wizard" (create): urut.
     $mode = $mode ?? 'wizard';
     $wizardSteps = [
-        ['number' => 1, 'icon' => 'bi-info-circle', 'label' => 'Info Dasar'],
-        ['number' => 2, 'icon' => 'bi-geo-alt', 'label' => 'Lokasi & Waktu'],
-        ['number' => 3, 'icon' => 'bi-cash-coin', 'label' => 'Biaya & Kuota'],
-        ['number' => 4, 'icon' => 'bi-images', 'label' => 'Media & Publikasi'],
+        ['number' => 1, 'icon' => 'bi-info-circle', 'label' => 'Info Dasar', 'hint' => 'Nama, kategori & jenis event'],
+        ['number' => 2, 'icon' => 'bi-geo-alt', 'label' => 'Lokasi & Waktu', 'hint' => 'Provinsi, kota, tanggal & jam'],
+        ['number' => 3, 'icon' => 'bi-cash-coin', 'label' => 'Biaya & Kuota', 'hint' => 'Harga, fee & kuota'],
+        ['number' => 4, 'icon' => 'bi-images', 'label' => 'Media & Publikasi', 'hint' => 'Avatar, banner & status publikasi'],
     ];
 
     $formatDateTime = function ($value) {
@@ -34,15 +34,30 @@
                 @method('PUT')
             @endif
 
-            <ol class="wizard-steps">
-                @foreach ($wizardSteps as $step)
-                    <li class="wizard-step-item" data-step-indicator="{{ $step['number'] }}"
-                        @if ($mode === 'tabs') tabindex="0" role="button" title="Buka tab {{ $step['label'] }}" @endif>
-                        <span class="step-number">{{ $step['number'] }}</span>
-                        <span><i class="bi {{ $step['icon'] }} me-1"></i>{{ $step['label'] }}</span>
-                    </li>
-                @endforeach
-            </ol>
+            <div class="row g-4 event-wizard-layout">
+                {{-- Navigasi vertikal (kiri) --}}
+                <div class="col-md-3 col-lg-3">
+                    <nav class="wizard-vnav" aria-label="Navigasi langkah event">
+                        <ol class="wizard-vsteps">
+                            @foreach ($wizardSteps as $step)
+                                <li class="wizard-vstep" data-step-indicator="{{ $step['number'] }}"
+                                    @if ($mode === 'tabs') tabindex="0" role="button" title="Buka tab {{ $step['label'] }}" @endif>
+                                    <span class="wizard-vstep-number">{{ $step['number'] }}</span>
+                                    <span class="wizard-vstep-body">
+                                        <span class="wizard-vstep-label">
+                                            <i class="bi {{ $step['icon'] }} me-1"></i>{{ $step['label'] }}
+                                        </span>
+                                        <span class="wizard-vstep-hint">{{ $step['hint'] }}</span>
+                                    </span>
+                                    <i class="bi bi-chevron-right wizard-vstep-arrow"></i>
+                                </li>
+                            @endforeach
+                        </ol>
+                    </nav>
+                </div>
+
+                {{-- Konten langkah (kanan) --}}
+                <div class="col-md-9 col-lg-9 event-wizard-content">
 
             {{-- Langkah 1: Info Dasar --}}
             <section class="wizard-pane" data-step="1">
@@ -334,6 +349,8 @@
                     <i class="bi bi-check-lg me-1"></i>{{ $submitLabel }}
                 </button>
             </div>
+        </div>{{-- /event-wizard-content --}}
+        </div>{{-- /event-wizard-layout --}}
         </form>
     </div>
 </div>
