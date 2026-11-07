@@ -100,6 +100,7 @@
 
         /* ---------- Admin shell ---------- */
         .admin-shell {
+            --sidebar-width: 264px;
             display: flex;
             flex: 1 0 auto;
             min-height: 100vh;
@@ -118,7 +119,7 @@
         }
 
         .admin-sidebar {
-            width: 264px;
+            width: var(--sidebar-width);
             flex-shrink: 0;
             position: sticky;
             top: 0;
@@ -128,6 +129,7 @@
             background-color: var(--bs-body-bg);
             border-right: 1px solid var(--bs-border-color);
             overflow-y: auto;
+            overflow-x: hidden;
             z-index: 1040;
         }
 
@@ -209,6 +211,183 @@
             inset: 0;
             background-color: rgba(0, 0, 0, .45);
             z-index: 1035;
+        }
+
+        /* ---------- Sidebar modes & resize ---------- */
+
+        .admin-shell[data-sidebar-mode="hidden"] .admin-sidebar {
+            transform: translateX(-100%);
+        }
+
+        @media (min-width: 992px) {
+            .admin-shell[data-sidebar-mode="hidden"] .admin-sidebar {
+                display: none;
+            }
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .admin-sidebar {
+            width: 68px;
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .hide-in-compact {
+            display: none !important;
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .sidebar-section-title {
+            display: none !important;
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .sidebar-header {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .sidebar-header .brand {
+            justify-content: center;
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .sidebar-body {
+            padding-left: .4rem;
+            padding-right: .4rem;
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .admin-sidebar .nav-link {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .admin-sidebar .nav-link i {
+            margin: 0 !important;
+            font-size: 1.15rem;
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .sidebar-footer {
+            padding-left: .5rem;
+            padding-right: .5rem;
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .sidebar-footer .btn {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .sidebar-footer .btn {
+            gap: 0;
+        }
+
+        /* Mode toggle button group di sidebar header */
+        .sidebar-mode-toggle {
+            display: inline-flex;
+            gap: .15rem;
+            background: var(--bs-tertiary-bg);
+            border: 1px solid var(--bs-border-color-translucent);
+            border-radius: .5rem;
+            padding: .15rem;
+        }
+
+        .sidebar-mode-toggle .mode-btn {
+            border: 0;
+            background: transparent;
+            color: var(--bs-secondary-color);
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: .4rem;
+            font-size: .9rem;
+            cursor: pointer;
+            transition: all .15s ease;
+        }
+
+        .sidebar-mode-toggle .mode-btn:hover {
+            background: var(--bs-secondary-bg);
+            color: var(--bs-body-color);
+        }
+
+        .admin-shell[data-sidebar-mode="full"] .mode-btn[data-mode-toggle="full"],
+        .admin-shell[data-sidebar-mode="compact"] .mode-btn[data-mode-toggle="compact"] {
+            background: var(--bs-primary);
+            color: #fff;
+            box-shadow: 0 .15rem .3rem rgba(var(--bs-primary-rgb), .35);
+        }
+
+        /* Drag-to-resize handle di kanan sidebar */
+        .sidebar-resize-handle {
+            position: fixed;
+            top: 0;
+            left: calc(var(--sidebar-width) - 4px);
+            height: 100vh;
+            width: 8px;
+            cursor: col-resize;
+            z-index: 1045;
+            background: transparent;
+            touch-action: none;
+        }
+
+        .sidebar-resize-handle::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 3px;
+            width: 2px;
+            height: 44px;
+            border-radius: 2px;
+            background: var(--bs-border-color);
+            transform: translateY(-50%);
+            transition: all .2s ease;
+            opacity: 0;
+        }
+
+        .sidebar-resize-handle:hover::after,
+        .sidebar-resize-handle.dragging::after {
+            opacity: 1;
+            background: var(--bs-primary);
+            box-shadow: 0 0 .5rem rgba(var(--bs-primary-rgb), .35);
+        }
+
+        .admin-shell[data-sidebar-mode="compact"] .sidebar-resize-handle,
+        .admin-shell[data-sidebar-mode="hidden"] .sidebar-resize-handle {
+            display: none;
+        }
+
+        /* Tombol reveal floating — muncul hanya saat sidebar hidden */
+        .sidebar-reveal-fab {
+            position: fixed;
+            left: .75rem;
+            bottom: .75rem;
+            z-index: 1060;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 0;
+            background: var(--bs-primary);
+            color: #fff;
+            box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .3);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            cursor: pointer;
+            transition: transform .2s ease;
+        }
+
+        .sidebar-reveal-fab:hover {
+            transform: scale(1.08);
+        }
+
+        .admin-shell[data-sidebar-mode="hidden"] .sidebar-reveal-fab {
+            display: inline-flex;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar-resize-handle,
+            .sidebar-mode-toggle {
+                display: none !important;
+            }
         }
 
         @media (max-width: 991.98px) {
@@ -520,10 +699,12 @@
                             </a>
                         </li>
                     </ul>
-                    <x-theme-toggle variant="btn-outline-light" />
-                    <a class="btn btn-sm btn-outline-warning" href="{{ route('admin.dashboard') }}">
-                        <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
-                    </a>
+                    {{-- <x-theme-toggle variant="btn-outline-light" /> --}}
+                    {{--
+                        <a class="btn btn-sm btn-outline-warning" href="{{ route('admin.dashboard') }}">
+                            <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
+                        </a> 
+                    --}}
                 </div>
 
                 {{-- Mobile offcanvas toggle --}}
