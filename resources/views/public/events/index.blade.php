@@ -256,7 +256,7 @@
 
                                 <div class="position-absolute top-0 start-0 m-3 d-flex flex-column align-items-start gap-1">
                                     <x-event-category-badge :event="$event" />
-                                    <x-event-type-badge :event="$event" />
+                                    {{-- <x-event-type-badge :event="$event" /> --}}
                                 </div>
 
                                 <div class="position-absolute start-0 bottom-0 m-3">
@@ -284,7 +284,7 @@
                                 </p>
                             </div>
 
-                            <div class="card-footer bg-transparent border-0 pt-0 d-flex align-items-center justify-content-between">
+                            <div class="card-footer bg-transparent border-0 pt-0  d-flex align-items-center justify-content-between">
                                 <span class="small text-muted">
                                     <i class="bi bi-people me-1"></i>{{ $event->registrants_count }} pendaftar
                                 </span>
