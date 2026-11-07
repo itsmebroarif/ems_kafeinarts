@@ -4,8 +4,8 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-9 col-xl-8">
+    <div class="row">
+        <div class="col-12">
             @include('admin.events.form-wizard', [
                 'action' => route('admin.events.store'),
                 'title' => 'Buat Event Baru',
