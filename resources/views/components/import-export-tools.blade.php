@@ -43,7 +43,7 @@
                         Unggah file CSV dengan kolom:
                         <strong>{{ implode(', ', $columns) }}</strong>.
                         Data yang sudah ada (berdasarkan
-                        {{ $type === 'registrants' ? 'email' : 'kode' }}) akan diperbarui,
+                        {{ in_array($type, ['registrants', 'panitia'], true) ? 'email' : 'kode' }}) akan diperbarui,
                         selebihnya ditambahkan sebagai data baru.
                     </p>
 

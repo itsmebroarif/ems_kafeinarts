@@ -99,6 +99,11 @@ class Event extends Model
         return $this->hasMany(Registrant::class);
     }
 
+    public function committees(): HasMany
+    {
+        return $this->hasMany(EventCommittee::class);
+    }
+
     /**
      * Event sport/esport: kategorinya ditandai is_sport.
      */

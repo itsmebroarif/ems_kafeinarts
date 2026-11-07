@@ -2,13 +2,17 @@
 
 namespace App\Services\MasterData;
 
+use App\Enums\PanitiaRole;
 use App\Enums\RegistrationStatus;
 use App\Models\Event;
+use App\Models\EventCommittee;
 use App\Models\Registrant;
+use App\Models\User;
 use App\Services\Ticket\TicketGenerationService;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -23,7 +27,7 @@ class MasterDataImportExportService
     /**
      * @var array<int, string>
      */
-    public const TYPES = ['tiers', 'addons', 'vouchers', 'registrants', 'result'];
+    public const TYPES = ['tiers', 'addons', 'vouchers', 'registrants', 'panitia', 'result'];
 
     /**
      * Kolom (header) tiap tipe master data, sesuai urutan ekspor.
@@ -55,6 +59,10 @@ class MasterDataImportExportService
             'category_id', 'board_status', 'result_details',
             'final_score', 'winner', 'mvp',
         ],
+        'panitia' => [
+            'full_name', 'email', 'phone', 'role', 'status',
+            'joined_at', 'base_salary', 'allowance', 'overtime', 'deduction',
+        ],
     ];
 
     /**
@@ -68,6 +76,7 @@ class MasterDataImportExportService
         'vouchers' => ['code', 'value'],
         'registrants' => ['full_name', 'email', 'ticket_tier'],
         'result' => ['category_id', 'board_status', 'result_details'],
+        'panitia' => ['full_name', 'email', 'role'],
     ];
 
     /**
@@ -85,6 +94,10 @@ class MasterDataImportExportService
         ],
         'result' => [
             'Olahraga', 'SCE-PART-001/2023', 'final: Tim A 2-1 Tim B', '2-1', 'Tim A', 'John Doe',
+        ],
+        'panitia' => [
+            'Budi Santoso', 'budi@example.test', '08123456789', 'sekretaris', 'aktif',
+            '2026-11-01', '1000000', '200000', '150000', '50000',
         ],
     ];
 
@@ -109,6 +122,8 @@ class MasterDataImportExportService
             'addons' => 'Add-On',
             'vouchers' => 'Voucher',
             'registrants' => 'Pendaftar',
+            'result' => 'Result',
+            'panitia' => 'Panitia',
         ];
     }
 
@@ -152,6 +167,9 @@ class MasterDataImportExportService
                 ->map(fn ($voucher) => $this->rowFor($type, $voucher))->all(),
             'registrants' => $event->registrants()->orderBy('created_at')->get()
                 ->map(fn (Registrant $registrant) => $this->rowFor($type, $registrant))->all(),
+            'panitia' => $event->committees()->with(['user', 'payrolls'])
+                ->orderBy('id')->get()
+                ->map(fn (EventCommittee $member) => $this->rowForPanitia($member))->all(),
             default => [],
         };
     }
@@ -265,6 +283,10 @@ class MasterDataImportExportService
     {
         if ($type === 'registrants') {
             return $this->prepareRegistrantRow($event, $record, $line, $errors);
+        }
+
+        if ($type === 'panitia') {
+            return $this->preparePanitiaRow($event, $record, $line, $errors);
         }
 
         $slug = $this->text($record['slug'] ?? '');
@@ -434,6 +456,157 @@ class MasterDataImportExportService
     }
 
     /**
+     * Validasi + normalisasi baris panitia: buat/pakai akun, lalu jadi anggota kepanitiaan.
+     *
+     * @param  array<string, string>  $record
+     * @param  array<int, string>  $errors
+     * @return array<string, mixed>|null
+     */
+    private function preparePanitiaRow(Event $event, array $record, int $line, array &$errors): ?array
+    {
+        $role = $this->text($record['role'] ?? '');
+
+        if (! PanitiaRole::isValid($role)) {
+            $errors[] = "Baris {$line}: role \"{$role}\" tidak valid. Gunakan: ".implode(', ', PanitiaRole::ALL).'.';
+
+            return null;
+        }
+
+        $payload = [
+            'full_name' => $this->text($record['full_name'] ?? ''),
+            'email' => $this->text($record['email'] ?? ''),
+            'phone' => $this->text($record['phone'] ?? '') ?: null,
+            'role' => $role,
+            'status' => $this->text($record['status'] ?? '') ?: 'aktif',
+            'joined_at' => $this->text($record['joined_at'] ?? '') ?: null,
+            'base_salary' => $this->number($record['base_salary'] ?? null, 0),
+            'allowance' => $this->number($record['allowance'] ?? null, 0),
+            'overtime' => $this->number($record['overtime'] ?? null, 0),
+            'deduction' => $this->number($record['deduction'] ?? null, 0),
+        ];
+
+        $validator = Validator::make($payload, [
+            'full_name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'status' => ['nullable', 'string', 'max:16'],
+            'joined_at' => ['nullable', 'date'],
+            'base_salary' => ['numeric', 'min:0'],
+            'allowance' => ['numeric', 'min:0'],
+            'overtime' => ['numeric', 'min:0'],
+            'deduction' => ['numeric', 'min:0'],
+        ]);
+
+        if ($validator->fails()) {
+            foreach ($validator->errors()->all() as $message) {
+                $errors[] = "Baris {$line}: {$message}";
+            }
+
+            return null;
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function upsertPanitia(Event $event, array $payload): bool
+    {
+        // Temukan atau buat akun pengguna (email unik).
+        $user = User::where('email', mb_strtolower($payload['email']))->first();
+
+        if ($user) {
+            $user->update([
+                'name' => $payload['full_name'],
+                'phone' => $payload['phone'],
+            ]);
+            $isNew = false;
+        } else {
+            $user = User::create([
+                'name' => $payload['full_name'],
+                'email' => mb_strtolower($payload['email']),
+                'phone' => $payload['phone'],
+                // Password default untuk akun panitia hasil impor; bisa diubah nanti.
+                'password' => Hash::make('panitia123'),
+            ]);
+            $isNew = true;
+        }
+
+        // Upsert keanggotaan kepanitiaan.
+        $member = EventCommittee::where('event_id', $event->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        $joinedAt = $payload['joined_at']
+            ? Carbon::parse($payload['joined_at'])->toDateString()
+            : now()->toDateString();
+
+        $memberData = [
+            'role' => $payload['role'],
+            'status' => $payload['status'] ?: 'aktif',
+            'joined_at' => $joinedAt,
+        ];
+
+        if ($member) {
+            $member->update($memberData);
+        } else {
+            $member = EventCommittee::create($memberData + [
+                'event_id' => $event->id,
+                'user_id' => $user->id,
+            ]);
+        }
+
+        // Upsert payroll anggota (satu record "aktif" terbaru).
+        $payroll = $member->payrolls()->latest('id')->first();
+
+        $base = (float) $payload['base_salary'];
+        $allowance = (float) $payload['allowance'];
+        $overtime = (float) $payload['overtime'];
+        $deduction = (float) $payload['deduction'];
+        $net = round($base + $allowance + $overtime - $deduction, 2);
+
+        $payrollData = [
+            'base_salary' => $base,
+            'allowance' => $allowance,
+            'overtime' => $overtime,
+            'deduction' => $deduction,
+            'net_salary' => $net,
+            'period_start' => $joinedAt,
+        ];
+
+        if ($payroll) {
+            $payroll->update($payrollData);
+        } else {
+            $member->payrolls()->create($payrollData + ['status' => 'draft']);
+        }
+
+        return $isNew;
+    }
+
+    /**
+     * Baris ekspor panitia (nama, kontak, role, payroll).
+     */
+    private function rowForPanitia(EventCommittee $member): array
+    {
+        $payroll = $member->payrolls->sortByDesc('id')->first();
+        $user = $member->user;
+
+        return [
+            'full_name' => (string) ($user?->name ?? ''),
+            'email' => (string) ($user?->email ?? ''),
+            'phone' => (string) ($user?->phone ?? ''),
+            'role' => (string) $member->role,
+            'status' => (string) ($member->status ?? 'aktif'),
+            'joined_at' => optional($member->joined_at)->toDateString() ?? '',
+            'base_salary' => (string) ($payroll?->base_salary ?? '0'),
+            'allowance' => (string) ($payroll?->allowance ?? '0'),
+            'overtime' => (string) ($payroll?->overtime ?? '0'),
+            'deduction' => (string) ($payroll?->deduction ?? '0'),
+        ];
+    }
+
+    /**
      * Simpan payload (insert bila belum ada, update bila sudah ada).
      *
      * @param  array<string, mixed>  $payload
@@ -460,6 +633,7 @@ class MasterDataImportExportService
                 $payload
             ),
             'registrants' => $this->upsertRegistrant($event, $payload),
+            'panitia' => $this->upsertPanitia($event, $payload),
             default => false,
         };
     }
@@ -521,6 +695,7 @@ class MasterDataImportExportService
     {
         return match ($type) {
             'registrants' => 'email:'.mb_strtolower($payload['email']),
+            'panitia' => 'email:'.mb_strtolower($payload['email']),
             default => 'code:'.mb_strtoupper($payload['code']),
         };
     }

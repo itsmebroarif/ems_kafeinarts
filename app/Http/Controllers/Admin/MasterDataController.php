@@ -132,6 +132,7 @@ class MasterDataController extends Controller
             'addons' => 'admin.events.addons.index',
             'vouchers' => 'admin.events.vouchers.index',
             'registrants' => 'admin.events.registrants.index',
+            'panitia' => 'admin.events.panitia.index',
         };
     }
 }

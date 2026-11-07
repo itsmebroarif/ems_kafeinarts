@@ -7,6 +7,7 @@
         ['route' => 'admin.events.addons.index', 'icon' => 'bi-bag-plus', 'label' => 'Add-on'],
         ['route' => 'admin.events.vouchers.index', 'icon' => 'bi-tag', 'label' => 'Voucher'],
         ['route' => 'admin.events.registrants.index', 'icon' => 'bi-people', 'label' => 'Pendaftar'],
+        ['route' => 'admin.events.panitia.index', 'icon' => 'bi-person-badge', 'label' => 'Panitia'],
     ];
 @endphp
 
@@ -82,9 +83,17 @@
         <a href="{{ route('home') }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 mb-2">
             <i class="bi bi-box-arrow-up-right me-1"></i>Lihat Web
         </a>
+        <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-outline-primary w-100 mb-2">
+            <i class="bi bi-pencil-square me-1"></i>Edit Profil
+        </a>
         <div class="border rounded p-2 mb-2 text-center">
             <div class="d-flex align-items-center justify-content-center gap-2">
-                <i class="bi bi-person-circle fs-4"></i>
+                @if (Auth::check() && Auth::user()->avatar_url)
+                    <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}"
+                        class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                @else
+                    <i class="bi bi-person-circle fs-4"></i>
+                @endif
                 <div class="small text-start">
                     <div class="fw-semibold">{{ Auth::user()->name ?? 'Guest' }}</div>
                     <div class="text-muted" style="font-size: .75rem;">{{ Auth::user()->email ?? '' }}</div>

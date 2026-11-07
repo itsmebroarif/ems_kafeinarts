@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\AddonController as AdminAddonController;
 use App\Http\Controllers\Admin\VoucherController as AdminVoucherController;
 use App\Http\Controllers\Admin\RegistrantController as AdminRegistrantController;
 use App\Http\Controllers\Admin\MasterDataController as AdminMasterDataController;
+use App\Http\Controllers\Admin\PanitiaController as AdminPanitiaController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\EventController as PublicEventController;
 use App\Http\Controllers\Public\ParticipantController;
 use App\Http\Controllers\Public\LocaleController;
@@ -44,6 +46,12 @@ Route::prefix('participant')->group(function () {
     Route::get('/{token}/ticket/download', [ParticipantController::class, 'ticketDownload'])->name('public.participants.ticket.download');
     Route::get('/{token}/checkout-letter', [ParticipantController::class, 'checkoutLetter'])->name('public.participants.checkout-letter');
     Route::get('/{token}/checkout-letter/download', [ParticipantController::class, 'checkoutLetterDownload'])->name('public.participants.checkout-letter.download');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 });
 
 Route::prefix('admin')->middleware('auth')->group(function () {
@@ -98,6 +106,16 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         Route::get('/', [AdminRegistrantController::class, 'index'])->name('admin.events.registrants.index');
         Route::get('/{registrant}', [AdminRegistrantController::class, 'show'])->name('admin.events.registrants.show');
         Route::put('/{registrant}', [AdminRegistrantController::class, 'update'])->name('admin.events.registrants.update');
+    });
+
+    Route::prefix('events/{event}/panitia')->group(function () {
+        Route::get('/', [AdminPanitiaController::class, 'index'])->name('admin.events.panitia.index');
+        Route::post('/', [AdminPanitiaController::class, 'store'])->name('admin.events.panitia.store');
+        Route::put('/{member}/role', [AdminPanitiaController::class, 'updateRole'])->name('admin.events.panitia.role');
+        Route::delete('/{member}', [AdminPanitiaController::class, 'destroy'])->name('admin.events.panitia.destroy');
+        Route::post('/{member}/payroll', [AdminPanitiaController::class, 'payrollStore'])->name('admin.events.panitia.payroll.store');
+        Route::post('/{member}/payroll/{payroll}/pay', [AdminPanitiaController::class, 'payrollPay'])->name('admin.events.panitia.payroll.pay');
+        Route::get('/{member}/id-card', [AdminPanitiaController::class, 'idCard'])->name('admin.events.panitia.id-card');
     });
 
     // Impor/ekspor master data per event: tiers, addons, vouchers, registrants.

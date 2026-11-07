@@ -61,6 +61,11 @@ Aplikasi ini dirancang agar:
 - **Add-ons** — produk tambahan dengan stok dan harga.
 - **Voucher** — manajemen kode diskon.
 - **Pendaftar** — daftar seluruh peserta per event.
+- **Panitia Event** — daftarkan akun sebagai panitia event, berikan role (Ketua, Sekretaris, Bendahara, Koordinator, Staff, Sukarelawan), dan kelola kepanitiaan.
+- **Payroll Panitia** — hitung gaji pokok, tunjangan, lembur, dan potongan; gaji bersih otomatis; tandai lunas.
+- **Edit Profil** — foto profil, Nomor Telepon, Email, alamat, dan Sosial Media (Instagram, X/Twitter, LinkedIn, GitHub, Website) untuk admin & panitia.
+- **Import/Export Master Data Panitia** — impor/ekspor CSV data panitia (nama, email, phone, role, status, tanggal gabung, dan komponen gaji) via halaman kepanitiaan.
+- **ID Card Panitia** — buat & cetak ID card panitia (desain kartu vertikal + QR code) untuk verifikasi kepanitiaan di venue.
 - **Export/Import Master Data** — CSV/Excel (Tier, Add-ons, Voucher, Pendaftar, dan Result event).
 - **Tutorial Admin** — halaman panduan lengkap untuk setiap menu.
 - **Add Result** — form khusus sport/esport untuk mengisi skor, pemenang, MVP.
