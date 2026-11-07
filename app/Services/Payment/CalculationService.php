@@ -82,6 +82,8 @@ class CalculationService
         $registrant->nationality = $input['nationality'] ?? null;
         $registrant->city = $input['city'] ?? null;
         $registrant->district = $input['district'] ?? null;
+        $registrant->province = $input['province'] ?? null;
+        $registrant->village = $input['village'] ?? null;
         $registrant->address = $input['address'] ?? null;
         $registrant->postal_code = $input['postal_code'] ?? null;
         $registrant->guests_quantity = $input['guests_quantity'] ?? null;

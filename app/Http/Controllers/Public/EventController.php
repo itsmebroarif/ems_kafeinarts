@@ -227,6 +227,8 @@ class EventController extends Controller
             'nationality' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'district' => ['nullable', 'string', 'max:255'],
+            'province' => ['nullable', 'string', 'max:255'],
+            'village' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string'],
             'postal_code' => ['nullable', 'string', 'max:255'],
             'guests_quantity' => ['nullable', 'string', 'max:255'],

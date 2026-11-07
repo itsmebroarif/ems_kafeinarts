@@ -19,6 +19,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $district
  * @property string|null $address
  * @property string|null $postal_code
+ * @property string|null $province
+ * @property string|null $village
  * @property string|null $guests_quantity
  * @property string|null $registrant_type
  * @property string|null $guests_quantity_other
@@ -78,6 +80,7 @@ class Registrant extends Model
 
     protected $fillable = [
         'user_id', 'full_name', 'email', 'phone', 'nationality', 'city', 'district', 'address', 'postal_code',
+        'province', 'village',
         'guests_quantity', 'registrant_type', 'guests_quantity_other', 'event_id', 'ticket_tier_id', 'voucher_id',
         'status', 'notes', 'custom_fields', 'subtotal', 'addons_total', 'discount', 'total', 'fee',
         'session_key', 'participant_token',

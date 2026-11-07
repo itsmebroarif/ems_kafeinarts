@@ -71,14 +71,50 @@
                                     <label class="form-label">No. HP</label>
                                     <input type="text" name="phone" class="form-control" value="{{ old('phone') }}">
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Kota</label>
-                                    <input type="text" name="city" class="form-control" value="{{ old('city') }}">
+                                <div class="col-md-6 mb-3 location-widget" data-level="provinsi">
+                                    <label class="form-label">Provinsi <span class="text-danger">*</span></label>
+                                    <input type="text" name="province" class="form-control location-input"
+                                        placeholder="Ketik untuk mencari provinsi..." required autocomplete="off"
+                                        value="{{ old('province') }}">
+                                    <div class="location-list list-group position-absolute w-100 shadow border rounded-3"
+                                        role="listbox" hidden style="max-height: 240px; overflow-y: auto; z-index: 1080;">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3 location-widget" data-level="kota">
+                                    <label class="form-label">Kota / Kabupaten <span class="text-danger">*</span></label>
+                                    <input type="text" name="city" class="form-control location-input"
+                                        placeholder="{{ old('province') ? 'Ketik untuk mencari kota / kabupaten...' : 'Pilih provinsi dulu...' }}"
+                                        required autocomplete="off"
+                                        value="{{ old('city') }}" @unless(old('province')) disabled @endunless>
+                                    <div class="location-list list-group position-absolute w-100 shadow border rounded-3"
+                                        role="listbox" hidden style="max-height: 240px; overflow-y: auto; z-index: 1080;">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3 location-widget" data-level="kecamatan">
+                                    <label class="form-label">Kecamatan</label>
+                                    <input type="text" name="district" class="form-control location-input"
+                                        placeholder="{{ old('city') ? 'Ketik untuk mencari kecamatan...' : 'Pilih kota / kabupaten dulu...' }}"
+                                        autocomplete="off"
+                                        value="{{ old('district') }}" @unless(old('city')) disabled @endunless>
+                                    <div class="location-list list-group position-absolute w-100 shadow border rounded-3"
+                                        role="listbox" hidden style="max-height: 240px; overflow-y: auto; z-index: 1080;">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3 location-widget" data-level="kelurahan">
+                                    <label class="form-label">Kelurahan</label>
+                                    <input type="text" name="village" class="form-control location-input"
+                                        placeholder="{{ old('district') ? 'Ketik untuk mencari kelurahan...' : 'Pilih kecamatan dulu...' }}"
+                                        autocomplete="off"
+                                        value="{{ old('village') }}" @unless(old('district')) disabled @endunless>
+                                    <div class="location-list list-group position-absolute w-100 shadow border rounded-3"
+                                        role="listbox" hidden style="max-height: 240px; overflow-y: auto; z-index: 1080;">
+                                    </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Kecamatan</label>
-                                    <input type="text" name="district" class="form-control"
-                                        value="{{ old('district') }}">
+                                    <label class="form-label">Kode Pos</label>
+                                    <input type="text" name="postal_code" class="form-control" id="postalCode"
+                                        value="{{ old('postal_code') }}" placeholder="Terisi otomatis dari kelurahan"
+                                        readonly>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Kode Voucher <span class="text-muted small">(opsional)</span></label>
@@ -359,6 +395,42 @@
         box-shadow: 0 0 0 .15rem rgba(var(--bs-primary-rgb), .15);
     }
 
+    /* ---------- Cascading location autocomplete ---------- */
+    .location-widget {
+        position: relative;
+    }
+
+    .location-list {
+        top: 100%;
+        left: 0;
+        margin-top: .25rem;
+        background-color: var(--bs-body-bg);
+        border-color: var(--bs-border-color);
+    }
+
+    .location-list .location-option {
+        padding: .4rem .75rem;
+        font-size: .875rem;
+        cursor: pointer;
+    }
+
+    .location-list .location-option:hover,
+    .location-list .location-option.active {
+        background-color: rgba(var(--bs-primary-rgb), .12);
+        color: var(--bs-body-color);
+    }
+
+    .location-list .location-empty {
+        padding: .5rem .75rem;
+        font-size: .8125rem;
+        color: var(--bs-secondary-color);
+    }
+
+    .location-input:disabled {
+        background-color: var(--bs-secondary-bg);
+        cursor: not-allowed;
+    }
+
     .reg-event-info {
         position: sticky;
         top: 1rem;
@@ -394,6 +466,16 @@
         var last = panes.length;
 
         form.setAttribute('novalidate', '');
+
+        // Cegah Enter di kolom isian memicu implicit submit — wizard hanya maju lewat tombol.
+        form.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter') return;
+
+            var tag = event.target.tagName;
+            if (tag !== 'INPUT' && tag !== 'SELECT') return;
+
+            event.preventDefault();
+        });
 
         function show(step) {
             current = step;
@@ -501,6 +583,338 @@
         });
 
         show(1);
+    })();
+</script>
+
+<script>
+    /**
+     * Cascading autocomplete wilayah (Provinsi → Kota/Kab → Kecamatan → Kelurahan).
+     * Data diambil dari emsifa static API (https://www.emsifa.com/api-wilayah-indonesia).
+     * Ketik untuk memfilter, gunakan ↑/↓ untuk navigasi, Enter untuk memilih, Esc untuk menutup.
+     */
+    (function () {
+        var API_BASE = 'https://www.emsifa.com/api-wilayah-indonesia/v2';
+        var MAX_RESULTS = 60;
+        var memoryCache = {};
+        var pendingFetches = {};
+
+        // Village lists bisa sangat besar, jadi hanya cache di memory; level lain aman di localStorage.
+        var LOCAL_CACHE_KEY = 'kafeinarts.wilayah.cache.v2';
+
+        function readLocalCache() {
+            try {
+                return JSON.parse(localStorage.getItem(LOCAL_CACHE_KEY) || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function writeLocalCache(key, items) {
+            try {
+                var cache = readLocalCache();
+                cache[key] = items;
+                localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(cache));
+            } catch (e) {
+                // localStorage penuh — abaikan, memory cache tetap dipakai.
+            }
+        }
+
+        function fetchWilayah(path, cacheInStorage) {
+            if (memoryCache[path]) {
+                return Promise.resolve(memoryCache[path]);
+            }
+
+            if (cacheInStorage) {
+                var local = readLocalCache();
+                if (Array.isArray(local[path])) {
+                    memoryCache[path] = local[path];
+                    return Promise.resolve(local[path]);
+                }
+            }
+
+            if (pendingFetches[path]) {
+                return pendingFetches[path];
+            }
+
+            var promise = fetch(API_BASE + path)
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Wilayah API responded HTTP ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(function (text) {
+                    var json = JSON.parse(text);
+                    var data = Array.isArray(json) ? json : (json.data || []);
+                    var items = data.map(function (item) {
+                        return {
+                            id: String(item.id),
+                            name: item.name,
+                            postal_code: item.postal_code || '',
+                        };
+                    });
+                    memoryCache[path] = items;
+                    if (cacheInStorage) {
+                        writeLocalCache(path, items);
+                    }
+                    return items;
+                })
+                .finally(function () {
+                    delete pendingFetches[path];
+                });
+
+            pendingFetches[path] = promise;
+            return promise;
+        }
+
+        var LEVELS = [
+            { level: 'provinsi', path: function () { return '/provinces.json'; }, useStorage: true, placeholder: 'Ketik untuk mencari provinsi...' },
+            { level: 'kota', path: function (parent) { return '/regencies/' + parent.id + '.json'; }, useStorage: true, placeholder: 'Pilih provinsi dulu...' },
+            { level: 'kecamatan', path: function (parent) { return '/districts/' + parent.id + '.json'; }, useStorage: true, placeholder: 'Pilih kota / kabupaten dulu...' },
+            { level: 'kelurahan', path: function (parent) { return '/villages/' + parent.id + '.json'; }, useStorage: false, placeholder: 'Pilih kecamatan dulu...' },
+        ];
+
+        var postalInput = document.getElementById('postalCode');
+        var widgets = {};
+
+        Array.prototype.forEach.call(document.querySelectorAll('.location-widget'), function (widget) {
+            widgets[widget.dataset.level] = widget;
+        });
+
+        function childLevel(level) {
+            var index = LEVELS.findIndex(function (item) { return item.level === level; });
+            return LEVELS[index + 1] ? LEVELS[index + 1].level : null;
+        }
+
+        function resetCascade(fromLevel) {
+            var reached = false;
+
+            LEVELS.forEach(function (config) {
+                if (config.level === fromLevel) {
+                    reached = true;
+                    return;
+                }
+
+                if (!reached) return;
+
+                var widget = widgets[config.level];
+                if (!widget) return;
+
+                var input = widget.querySelector('.location-input');
+
+                input.value = '';
+                input.disabled = true;
+                input.placeholder = config.placeholder;
+                widget._items = null;
+                widget._selected = null;
+                closeList(widget);
+            });
+
+            if (fromLevel === 'provinsi' || fromLevel === 'kota' || fromLevel === 'kecamatan') {
+                if (postalInput) postalInput.value = '';
+            }
+        }
+
+        function closeList(widget) {
+            var list = widget.querySelector('.location-list');
+            if (list) {
+                list.hidden = true;
+                list.innerHTML = '';
+            }
+        }
+
+        function renderList(widget, items, keyword) {
+            var list = widget.querySelector('.location-list');
+            list.innerHTML = '';
+
+            var filter = (keyword || '').trim().toLowerCase();
+            var matched = filter
+                ? items.filter(function (item) { return item.name.toLowerCase().indexOf(filter) !== -1; })
+                : items.slice();
+
+            widget._filtered = matched;
+            widget._activeIndex = -1;
+
+            if (!matched.length) {
+                var empty = document.createElement('div');
+                empty.className = 'location-empty';
+                empty.textContent = 'Tidak ada hasil untuk "' + filter + '"';
+                list.appendChild(empty);
+                list.hidden = false;
+                return;
+            }
+
+            matched.slice(0, MAX_RESULTS).forEach(function (item) {
+                var option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'list-group-item list-group-item-action location-option';
+                option.setAttribute('role', 'option');
+                option.textContent = item.name;
+                option.addEventListener('mousedown', function (event) {
+                    event.preventDefault();
+                    selectItem(widget, item);
+                });
+                list.appendChild(option);
+            });
+
+            if (matched.length > MAX_RESULTS) {
+                var more = document.createElement('div');
+                more.className = 'location-empty';
+                more.textContent = 'Menampilkan ' + MAX_RESULTS + ' dari ' + matched.length + ' hasil — persempit pencarian.';
+                list.appendChild(more);
+            }
+
+            list.hidden = false;
+        }
+
+        function highlightOption(widget, index) {
+            var options = widget.querySelectorAll('.location-option');
+            options.forEach(function (option, i) {
+                option.classList.toggle('active', i === index);
+                if (i === index) {
+                    option.scrollIntoView({ block: 'nearest' });
+                }
+            });
+            widget._activeIndex = index;
+        }
+
+        function selectItem(widget, item) {
+            var input = widget.querySelector('.location-input');
+            input.value = item.name;
+            widget._selected = item;
+            closeList(widget);
+
+            var level = widget.dataset.level;
+            var child = childLevel(level);
+
+            // Reset semua level di bawah, lalu aktifkan child langsung.
+            resetCascade(level);
+
+            if (postalInput && level === 'kelurahan' && item.postal_code) {
+                postalInput.value = item.postal_code;
+            }
+
+            if (child) {
+                var childWidget = widgets[child];
+                var childInput = childWidget.querySelector('.location-input');
+                childInput.disabled = false;
+                childInput.placeholder = 'Ketik untuk mencari ' + child + '...';
+
+                // Prefetch data anak agar muncul cepat saat user fokus.
+                loadItems(childWidget).catch(function () {});
+            }
+
+            input.focus();
+        }
+
+        function isActive(widget) {
+            return widget === document.activeElement || widget.contains(document.activeElement);
+        }
+
+        function loadItems(widget) {
+            if (widget._items) {
+                return Promise.resolve(widget._items);
+            }
+
+            var level = widget.dataset.level;
+            var config = LEVELS.filter(function (entry) { return entry.level === level; })[0];
+
+            var parent = null;
+            var index = LEVELS.findIndex(function (entry) { return entry.level === level; });
+            if (index > 0) {
+                var parentWidget = widgets[LEVELS[index - 1].level];
+                parent = parentWidget ? parentWidget._selected : null;
+                if (!parent) {
+                    return Promise.reject(new Error('parent not selected'));
+                }
+            }
+
+            if (isActive(widget)) {
+                showLoading(widget);
+            }
+
+            return fetchWilayah(config.path(parent), config.useStorage)
+                .then(function (items) {
+                    widget._items = items;
+                    return items;
+                })
+                .catch(function (error) {
+                    if (isActive(widget)) {
+                        showError(widget);
+                    }
+                    throw error;
+                });
+        }
+
+        function showLoading(widget) {
+            var list = widget.querySelector('.location-list');
+            list.innerHTML = '<div class="location-empty">Memuat data...</div>';
+            list.hidden = false;
+        }
+
+        function showError(widget) {
+            var list = widget.querySelector('.location-list');
+            list.innerHTML = '<div class="location-empty text-danger">Gagal memuat data. Periksa koneksi internet lalu coba lagi.</div>';
+            list.hidden = false;
+        }
+
+        Object.keys(widgets).forEach(function (level) {
+            var widget = widgets[level];
+            var input = widget.querySelector('.location-input');
+            var list = widget.querySelector('.location-list');
+
+            input.addEventListener('focus', function () {
+                if (input.disabled) return;
+                loadItems(widget).then(function (items) {
+                    renderList(widget, items, input.value);
+                }).catch(function () {});
+            });
+
+            input.addEventListener('input', function () {
+                widget._selected = null;
+
+                // Ketikan manual membatalkan pilihan induk — reset level di bawahnya.
+                resetCascade(level);
+
+                loadItems(widget).then(function (items) {
+                    renderList(widget, items, input.value);
+                }).catch(function () {});
+            });
+
+            input.addEventListener('keydown', function (event) {
+                if (list.hidden) return;
+
+                var filtered = widget._filtered || [];
+                if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    var next = widget._activeIndex < filtered.length - 1 ? widget._activeIndex + 1 : 0;
+                    highlightOption(widget, Math.min(next, Math.min(filtered.length, MAX_RESULTS) - 1));
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    var prev = widget._activeIndex > 0 ? widget._activeIndex - 1 : Math.min(filtered.length, MAX_RESULTS) - 1;
+                    highlightOption(widget, prev);
+                } else if (event.key === 'Enter') {
+                    if (widget._activeIndex >= 0 && filtered[widget._activeIndex]) {
+                        event.preventDefault();
+                        selectItem(widget, filtered[widget._activeIndex]);
+                    }
+                } else if (event.key === 'Escape') {
+                    closeList(widget);
+                }
+            });
+
+            input.addEventListener('blur', function () {
+                // Beri waktu untuk mousedown sebelum list ditutup.
+                setTimeout(function () { closeList(widget); }, 150);
+            });
+
+            // Klik di luar widget menutup dropdown.
+            document.addEventListener('click', function (event) {
+                if (!widget.contains(event.target)) {
+                    closeList(widget);
+                }
+            });
+        });
     })();
 </script>
 @endsection
