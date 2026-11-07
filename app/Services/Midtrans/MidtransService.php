@@ -146,6 +146,55 @@ class MidtransService
     }
 
     /**
+     * Probe koneksi ke Midtrans Snap API dengan satu transaksi kecil — membuktikan seluruh rantai (kredensial → jaringan → API) bekerja.
+     *
+     * @return array{http_status: int, order_id: string, token: string|null, redirect_url: string|null, message: string|null}
+     */
+    public function probeConnection(int $amount = 1000): array
+    {
+        if (! $this->isConfigured()) {
+            return ['http_status' => 0, 'order_id' => '', 'token' => null, 'redirect_url' => null, 'message' => 'Server key belum dikonfigurasi.'];
+        }
+
+        $amount = max(1, (int) $amount);
+        $orderId = 'PROBE-'.strtoupper(uniqid());
+
+        $payload = [
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => $amount,
+            ],
+            'item_details' => [[
+                'id' => 'PROBE',
+                'price' => $amount,
+                'quantity' => 1,
+                'name' => 'Uji Koneksi Midtrans',
+            ]],
+            'customer_details' => [
+                'first_name' => 'Probe',
+                'email' => 'probe@mail.com',
+            ],
+        ];
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'Authorization' => $this->auth(),
+        ])->post($this->snapUrl().'/transactions', $payload);
+
+        $body = $response->json() ?: [];
+        $token = $body['token'] ?? null;
+
+        return [
+            'http_status' => $response->status(),
+            'order_id' => $orderId,
+            'token' => $token,
+            'redirect_url' => $body['redirect_url'] ?? null,
+            'message' => $body['error_messages'][0] ?? $body['message'] ?? null,
+        ];
+    }
+
+    /**
      * Email pelanggan menghadap Midtrans: harus valid & bukan domain reserved.
      * Jika tidak memenuhi, fallback ke alamat aman agar transaksi tidak ditolak Midtrans.
      */

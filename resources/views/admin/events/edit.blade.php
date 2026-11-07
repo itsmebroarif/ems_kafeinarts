@@ -13,6 +13,9 @@
             <a href="{{ route('admin.events.tiers.index', $event->id) }}" class="btn btn-sm btn-outline-primary">
                 <i class="bi bi-ticket-detailed me-1"></i>Kelola Event
             </a>
+            <a href="{{ route('admin.events.midtrans.index', $event->id) }}" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-credit-card me-1"></i>Midtrans
+            </a>
         </div>
     </div>
 

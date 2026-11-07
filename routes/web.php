@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\VoucherController as AdminVoucherController;
 use App\Http\Controllers\Admin\RegistrantController as AdminRegistrantController;
 use App\Http\Controllers\Admin\MasterDataController as AdminMasterDataController;
 use App\Http\Controllers\Admin\PanitiaController as AdminPanitiaController;
+use App\Http\Controllers\Admin\MidtransSyncController as AdminMidtransSyncController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\EventController as PublicEventController;
 use App\Http\Controllers\Public\ParticipantController;
@@ -76,6 +77,8 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::post('events/{event}/board', [AdminEventController::class, 'moveBoard'])->name('admin.events.board.move');
     Route::get('events/{event}/result', [AdminEventController::class, 'result'])->name('admin.events.result');
     Route::post('events/{event}/result', [AdminEventController::class, 'resultStore'])->name('admin.events.result.store');
+    Route::get('events/{event}/midtrans', [AdminMidtransSyncController::class, 'index'])->name('admin.events.midtrans.index');
+    Route::post('events/{event}/midtrans/test', [AdminMidtransSyncController::class, 'test'])->name('admin.events.midtrans.test');
     Route::put('events/{event}', [AdminEventController::class, 'update'])->name('admin.events.update');
     Route::delete('events/{event}', [AdminEventController::class, 'destroy'])->name('admin.events.destroy');
     Route::get('events/{event}', [AdminEventController::class, 'show'])->name('admin.events.show');
