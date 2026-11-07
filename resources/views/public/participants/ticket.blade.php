@@ -53,6 +53,14 @@
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center flex-wrap">
+                        @if (! $registrant->is_paid)
+                            <a href="{{ route('public.participants.payment', $registrant->participant_token) }}"
+                                class="btn btn-success btn-lg">
+                                <i class="bi bi-credit-card me-1"></i>Bayar Sekarang
+                            </a>
+                        @else
+                            <span class="btn btn-success disabled"><i class="bi bi-check-circle me-1"></i>Lunas</span>
+                        @endif
                         <a href="{{ route('public.participants.ticket.print', $registrant->participant_token) }}"
                             class="btn btn-primary">
                             <i class="bi bi-printer me-1"></i>Cetak Tiket

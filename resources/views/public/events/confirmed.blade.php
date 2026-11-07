@@ -12,8 +12,15 @@
                         <i class="bi bi-check-circle"></i>
                     </div>
                     <h1 class="h3 mb-2">Pendaftaran Berhasil</h1>
-                    <p class="text-muted">Klik tombol di bawah untuk melihat detail tiket.</p>
-                    <a href="{{route('public.participants.ticket', $token)}}" class="btn btn-primary btn-lg">Lihat Tiket</a>
+                    <p class="text-muted">Silakan lanjutkan pembayaran kamu.</p>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <a href="{{ route('public.participants.payment', $token) }}" class="btn btn-success btn-lg">
+                            <i class="bi bi-credit-card me-1"></i>Bayar Sekarang
+                        </a>
+                        <a href="{{ route('public.participants.ticket', $token) }}" class="btn btn-outline-secondary btn-lg">
+                            Lihat Tiket
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
