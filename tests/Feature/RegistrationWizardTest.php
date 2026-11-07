@@ -114,6 +114,7 @@ class RegistrationWizardTest extends TestCase
         $response = $this->post(route('public.events.store', $this->event->slug), [
             'full_name' => 'Peserta Wizard',
             'email' => 'wizard@example.test',
+            'nik' => '3171234567890001',
             'ticket_tier_id' => $this->tier->id,
         ]);
 

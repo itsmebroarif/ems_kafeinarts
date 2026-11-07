@@ -27,8 +27,28 @@
                             <strong>{{ $registrant->phone ?? '-' }}</strong>
                         </div>
                         <div class="col-md-6">
+                            <p class="text-muted">NIK</p>
+                            <strong>{{ $registrant->nik ?? '-' }}</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted">Provinsi</p>
+                            <strong>{{ $registrant->province ?? '-' }}</strong>
+                        </div>
+                        <div class="col-md-6">
                             <p class="text-muted">Kota</p>
                             <strong>{{ $registrant->city ?? '-' }}</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted">Kecamatan</p>
+                            <strong>{{ $registrant->district ?? '-' }}</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted">Kelurahan</p>
+                            <strong>{{ $registrant->village ?? '-' }}</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted">Kode Pos</p>
+                            <strong>{{ $registrant->postal_code ?? '-' }}</strong>
                         </div>
                         <div class="col-md-6">
                             <p class="text-muted">Tier Tiket</p>

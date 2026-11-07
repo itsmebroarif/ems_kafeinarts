@@ -79,6 +79,7 @@ class CalculationService
         $registrant->full_name = $input['full_name'];
         $registrant->email = $input['email'];
         $registrant->phone = $input['phone'] ?? null;
+        $registrant->nik = $input['nik'] ?? null;
         $registrant->nationality = $input['nationality'] ?? null;
         $registrant->city = $input['city'] ?? null;
         $registrant->district = $input['district'] ?? null;
