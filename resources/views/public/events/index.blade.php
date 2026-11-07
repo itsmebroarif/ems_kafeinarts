@@ -15,7 +15,7 @@
     {{-- Header halaman --}}
     <div class="text-center mb-4">
         <span class="badge text-bg-primary rounded-pill px-3 py-2 mb-2">
-            <i class="bi bi-calendar-event me-1"></i>Jelajahi Event
+            <i class="bi bi-calendar-event me-1"></i>Event Tersedia : {{ $events->total() }}
         </span>
         <h1 class="h3 fw-bold mb-1">Daftar Event</h1>
         <p class="text-muted mb-0">Temukan event favoritmu dan amankan tiketnya sekarang.</p>

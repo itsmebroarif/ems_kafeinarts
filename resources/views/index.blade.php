@@ -20,7 +20,7 @@
                         <i class="bi bi-calendar2-event me-2"></i>Jelajahi Event
                     </a>
                     <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-light btn-lg px-4 fw-semibold">
-                        <i class="bi bi-speedometer2 me-2"></i>Dashboard Admin
+                        <i class="bi bi-speedometer2 me-2"></i>Daftarkan Event
                     </a>
                 </div>
             </div>
