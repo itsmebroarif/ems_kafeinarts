@@ -690,7 +690,7 @@
                             <i class="bi bi-search"></i>
                         </button>
                     </form>
-
+{{-- 
                     <div class="dropdown">
                         <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button"
                             data-bs-toggle="dropdown" aria-expanded="false" aria-label="Ganti bahasa">
@@ -700,17 +700,17 @@
                             <li><a class="dropdown-item" href="{{ route('locale.switch', 'id') }}">Bahasa Indonesia (ID)</a></li>
                             <li><a class="dropdown-item" href="{{ route('locale.switch', 'en') }}">English (EN)</a></li>
                         </ul>
-                    </div>
+                    </div> --}}
 
-                    <x-theme-toggle variant="btn-outline-light" />
+                    {{-- <x-theme-toggle variant="btn-outline-light" /> --}}
 
-                    <a href="{{ route('public.events.index') }}" class="btn btn-warning btn-sm fw-bold">
+{{--                     <a href="{{ route('public.events.index') }}" class="btn btn-warning btn-sm fw-bold">
                         <i class="bi bi-ticket-perforated me-1"></i>Beli Tiket
                     </a>
                     <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-light btn-sm"
                         title="Masuk ke panel admin" aria-label="Admin Dashboard">
                         <i class="bi bi-speedometer2"></i>
-                    </a>
+                    </a> --}}
                 </div>
 
                 {{-- Mobile offcanvas toggle --}}

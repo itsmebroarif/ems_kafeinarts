@@ -1,4 +1,8 @@
 *.log
+.agents
+.agents\skills
+.claude
+.pi
 .DS_Store
 .env
 .env.backup
