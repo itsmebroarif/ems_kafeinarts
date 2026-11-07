@@ -241,17 +241,7 @@
             gap: .6rem;
         }
 
-        /* Garis penghubung di belakang lingkaran nomor */
-        .wizard-vsteps::before {
-            content: "";
-            position: absolute;
-            left: 21px;
-            top: .9rem;
-            bottom: .9rem;
-            width: 2px;
-            background: var(--bs-border-color);
-            border-radius: 1px;
-        }
+        /* Garis penghubung di belakang lingkaran nomor — dihilangkan agar lebih rapi */
 
         .wizard-vstep {
             position: relative;
@@ -386,10 +376,6 @@
                 overflow-x: auto;
                 gap: .45rem;
                 padding-bottom: .35rem;
-            }
-
-            .wizard-vsteps::before {
-                display: none;
             }
 
             .wizard-vstep {
