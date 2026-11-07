@@ -157,11 +157,12 @@
                                             readonly>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Kode Voucher <span
-                                                class="text-muted small">(opsional)</span></label>
-                                        <input type="text" name="voucher_code" class="form-control"
-                                            value="{{ $voucher_code }}" placeholder="contoh: HEMAT10">
-                                        <div class="form-text">Voucher diperiksa saat konfirmasi.</div>
+                                        <label class="form-label">Jenis Kelamin <span class="text-danger">*</span></label>
+                                        <select name="gender" class="form-select" required>
+                                            <option value="" disabled @unless(old('gender')) selected @endunless>Pilih jenis kelamin...</option>
+                                            <option value="Laki-laki" @selected(old('gender') === 'Laki-laki')>Laki-laki</option>
+                                            <option value="Perempuan" @selected(old('gender') === 'Perempuan')>Perempuan</option>
+                                        </select>
                                     </div>
                                     <div class="col-12 mb-1">
                                         <label class="form-label">Alamat Lengkap</label>
@@ -224,6 +225,13 @@
                                 @else
                                     <p class="text-muted small mb-0">Tidak ada add-on untuk event ini.</p>
                                 @endif
+
+                                <div class="mt-4 pt-3 border-top">
+                                    <label class="form-label">Kode Voucher <span class="text-muted small">(opsional)</span></label>
+                                    <input type="text" name="voucher_code" class="form-control"
+                                        value="{{ $voucher_code }}" placeholder="contoh: HEMAT10">
+                                    <div class="form-text">Voucher diperiksa saat konfirmasi.</div>
+                                </div>
                             </section>
 
                             {{-- Langkah 3: Konfirmasi --}}

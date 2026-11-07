@@ -31,6 +31,10 @@
                             <strong>{{ $registrant->nik ?? '-' }}</strong>
                         </div>
                         <div class="col-md-6">
+                            <p class="text-muted">Jenis Kelamin</p>
+                            <strong>{{ $registrant->gender ?? '-' }}</strong>
+                        </div>
+                        <div class="col-md-6">
                             <p class="text-muted">Provinsi</p>
                             <strong>{{ $registrant->province ?? '-' }}</strong>
                         </div>

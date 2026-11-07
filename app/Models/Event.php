@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EventType;
+use App\Services\ParticipantViewService;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -49,6 +50,28 @@ class Event extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        // View `peserta_<slug>` selalu ikut lifecycle event.
+        static::created(function (Event $event): void {
+            app(ParticipantViewService::class)->sync($event);
+        });
+
+        static::updated(function (Event $event): void {
+            if ($event->wasChanged('slug')) {
+                app(ParticipantViewService::class)->drop($event->getOriginal('slug'));
+            }
+
+            app(ParticipantViewService::class)->sync($event);
+        });
+
+        static::deleted(function (Event $event): void {
+            app(ParticipantViewService::class)->drop($event->slug);
+        });
+    }
 
     protected $fillable = [
         'slug', 'name', 'logo', 'banner', 'category_id', 'event_type', 'description', 'location', 'provinsi', 'city', 'starts_at', 'ends_at',

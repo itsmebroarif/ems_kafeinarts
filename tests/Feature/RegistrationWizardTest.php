@@ -115,6 +115,7 @@ class RegistrationWizardTest extends TestCase
             'full_name' => 'Peserta Wizard',
             'email' => 'wizard@example.test',
             'nik' => '3171234567890001',
+            'gender' => 'Laki-laki',
             'ticket_tier_id' => $this->tier->id,
         ]);
 

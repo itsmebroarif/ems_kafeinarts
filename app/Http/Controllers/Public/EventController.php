@@ -225,6 +225,7 @@ class EventController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'nik' => ['required', 'digits:16'],
+            'gender' => ['required', 'in:Laki-laki,Perempuan'],
             'nationality' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'district' => ['nullable', 'string', 'max:255'],

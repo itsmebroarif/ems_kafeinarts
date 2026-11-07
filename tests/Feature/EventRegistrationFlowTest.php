@@ -40,6 +40,7 @@ class EventRegistrationFlowTest extends TestCase
             'full_name' => 'Budi Santoso',
             'email' => 'budi@example.test',
             'nik' => '3171234567890001',
+            'gender' => 'Laki-laki',
             'phone' => '081234567890',
             'ticket_tier_id' => $tier->id,
         ]);
@@ -81,6 +82,7 @@ class EventRegistrationFlowTest extends TestCase
             'full_name' => 'Siti Aminah',
             'email' => 'siti@example.test',
             'nik' => '3171234567890001',
+            'gender' => 'Laki-laki',
             'ticket_tier_id' => $tier->id,
             'addons' => [$addon->id => 1],
         ]);
@@ -121,6 +123,8 @@ class EventRegistrationFlowTest extends TestCase
                 'full_name' => 'Dodi',
                 'email' => 'dodi@example.test',
                 'nik' => '3171234567890001',
+                'gender' => 'Laki-laki',
+                'gender' => 'Laki-laki',
                 'ticket_tier_id' => $tier->id,
                 'addons' => [$addon->id => 2],
             ]);
@@ -149,6 +153,8 @@ class EventRegistrationFlowTest extends TestCase
                 'full_name' => 'Rina',
                 'email' => 'rina@example.test',
                 'nik' => '3171234567890001',
+                'gender' => 'Laki-laki',
+                'gender' => 'Laki-laki',
                 'ticket_tier_id' => $tier->id,
                 'addons' => [$addon->id => 1],
             ]);
@@ -168,6 +174,8 @@ class EventRegistrationFlowTest extends TestCase
                 'full_name' => 'Andi',
                 'email' => 'andi@example.test',
                 'nik' => '3171234567890001',
+                'gender' => 'Laki-laki',
+                'gender' => 'Laki-laki',
                 'ticket_tier_id' => '00000000-0000-0000-0000-000000000000',
             ]);
 
