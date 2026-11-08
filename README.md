@@ -72,6 +72,8 @@ Aplikasi ini dirancang agar:
 - **Add Result** — form khusus sport/esport untuk mengisi skor, pemenang, MVP.
 - **Cetak Tiket & Surat Checkout** — dari halaman manajemen peserta.
 - **Dummy Events Seeder** — generate 30 event + peserta untuk demo.
+- **View Peserta per Event** — setiap event memiliki SQL view `peserta_<slug>` (terpisah dari tabel `registrants`) berisi detail lengkap form peserta (data diri, wilayah, tier, voucher, pembayaran). View dibuat otomatis saat event dibuat, di-rename saat slug berubah, dihapus saat event dihapus, dan selalu sinkron.
+- **Export Peserta per Event** — command `php artisan events:export-peserta {slug?} {--format=both|csv|sql}` menghasilkan CSV dan/atau file SQL dump (membuat **tabel fisik** `peserta_<slug>` di database tujuan) ke `storage/app/private/exports/peserta/`. Cocok untuk migrasi data ke environment lain. Rebuild semua view: `php artisan events:sync-participant-views` (juga membersihkan view yatim).
 
 ### 🎨 UI/UX
 - Bootstrap 5 + custom CSS dengan shadow dan border radius.
@@ -82,7 +84,7 @@ Aplikasi ini dirancang agar:
 - Category dot & badge colors.
 
 ### 🔧 Engineering & Quality
-- **54 tests / 242 assertions** — feature tests untuk registrasi, board, PDF, import/export.
+- **88 tests / 351 assertions** — feature tests untuk registrasi, board, PDF, import/export, dan SQL view peserta.
 - **Pint** — format konsisten.
 - **View cache** — blade templates di-cache untuk performa.
 - **SQLite** untuk testing, **MySQL** untuk development.

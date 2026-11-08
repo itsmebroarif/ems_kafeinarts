@@ -17,6 +17,19 @@ class ParticipantViewService
 {
     public const PREFIX = 'peserta_';
 
+    /**
+     * Kolom view secara berurutan — dipakai sebagai header export (CSV) & daftar kolom SQL dump.
+     *
+     * @var array<int, string>
+     */
+    public const COLUMNS = [
+        'id', 'tanggal_daftar', 'full_name', 'email', 'phone', 'nik', 'gender', 'nationality',
+        'province', 'city', 'district', 'village', 'address', 'postal_code', 'registrant_type',
+        'guests_quantity', 'guests_quantity_other', 'ticket_tier', 'ticket_tier_code', 'ticket_price',
+        'voucher_code', 'status', 'is_paid', 'paid_at', 'subtotal', 'addons_total', 'discount',
+        'fee', 'total', 'notes', 'custom_fields', 'updated_at',
+    ];
+
     public function viewName(string $slug): string
     {
         return self::PREFIX.preg_replace('/[^a-z0-9_]+/', '_', strtolower($slug));
@@ -36,11 +49,11 @@ class ParticipantViewService
     }
 
     /**
-     * Rebuild semua view peserta — dipakai juga oleh command `events:sync-participant-views`.
+     * Rebuild semua view peserta & hapus view yatim (event sudah tidak ada).
      *
-     * @return int jumlah view yang dibuat
+     * @return array{synced: int, dropped: int}
      */
-    public function syncAll(): int
+    public function syncAll(): array
     {
         $count = 0;
 
@@ -49,7 +62,50 @@ class ParticipantViewService
             $count++;
         }
 
-        return $count;
+        return ['synced' => $count, 'dropped' => $this->dropOrphans()];
+    }
+
+    /**
+     * Hapus view `peserta_*` yang event-nya sudah tidak ada (yatim).
+     *
+     * @return int jumlah view yang dihapus
+     */
+    public function dropOrphans(): int
+    {
+        $views = $this->existingParticipantViews();
+        $valid = Event::query()->pluck('slug')->map(fn (string $slug) => $this->viewName($slug));
+        $dropped = 0;
+
+        foreach ($views as $view) {
+            if ($valid->contains($view)) {
+                continue;
+            }
+
+            DB::statement("DROP VIEW IF EXISTS `{$view}`");
+            $dropped++;
+        }
+
+        return $dropped;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function existingParticipantViews(): array
+    {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            return collect(DB::select("SELECT name FROM sqlite_master WHERE type = 'view' AND name GLOB 'peserta_*'"))
+                ->pluck('name')
+                ->all();
+        }
+
+        $database = DB::connection()->getDatabaseName();
+
+        return collect(DB::select("SHOW FULL TABLES WHERE Table_type = 'VIEW' AND `Tables_in_{$database}` LIKE 'peserta\\_%'"))
+            ->map(fn ($row) => $row->{"Tables_in_{$database}"})
+            ->all();
     }
 
     public function definition(Event $event): string

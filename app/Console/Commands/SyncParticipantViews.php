@@ -8,14 +8,18 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('events:sync-participant-views')]
-#[Description('Rebuild SQL view peserta_<slug> untuk semua event')]
+#[Description('Rebuild SQL view peserta_<slug> untuk semua event + hapus view yatim (event tidak ada)')]
 class SyncParticipantViews extends Command
 {
     public function handle(ParticipantViewService $service): int
     {
-        $count = $service->syncAll();
+        $result = $service->syncAll();
 
-        $this->components->info("{$count} view peserta berhasil dibuat/diperbarui.");
+        $this->components->info("{$result['synced']} view peserta dibuat/diperbarui.");
+
+        if ($result['dropped'] > 0) {
+            $this->components->warn("{$result['dropped']} view yatim (event tidak ada) dihapus.");
+        }
 
         return self::SUCCESS;
     }

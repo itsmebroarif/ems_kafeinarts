@@ -112,7 +112,8 @@ class EventCategoryTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Workshop');
-        $response->assertSee('rgba(253, 126, 20, .16)', false);
+        // Badge kategori tampil dengan warna solid sesuai color kategori.
+        $response->assertSee('background-color: rgb(253, 126, 20)', false);
     }
 
     public function test_admin_event_list_shows_category_badge(): void

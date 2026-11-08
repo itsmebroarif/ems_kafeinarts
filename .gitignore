@@ -29,3 +29,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Hasil export peserta (mengandung PII, jangan di-commit)
+/storage/app/private
+/storage/app/exports
